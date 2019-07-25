@@ -1,0 +1,40 @@
+
+##### #############################  notice !!! #######################################
+### ########### you should have  con.pl and flower.pl  in current dir  ################
+###############  you  sould have group file in current dir  #########################
+##### ##############################pre  zip and index ###############################
+for i in `ls *vcf`
+do
+`bgzip $i`
+`tabix -p vcf $i.gz`
+
+done
+
+############## merge vcf file  by vcf-merge  ###########################################
+export PERL5LIB=$PERL5LIB:/home/ReSeq/perl5/lib/perl5/5.16.3/x86_64-linux-thread-multi
+
+/public1/Softwares/vcftools_0.1.12b/bin/vcf-merge A1_snp.vcf.gz A2_snp.vcf.gz A3_snp.vcf.gz B1_snp.vcf.gz B2_snp.vcf.gz B3_snp.vcf.gz B4_snp.vcf.gz > whole.snp.vcf
+
+/public1/Softwares/vcftools_0.1.12b/bin/vcf-merge A1_snp.vcf.gz A2_snp.vcf.gz A3_snp.vcf.gz B1_snp.vcf.gz B2_snp.vcf.gz B3_snp.vcf.gz B4_snp.vcf.gz > whole.snp.vcf
+
+
+###########  only keep the first two colums and the sample column  #########################################
+###########  $10 ~ $16 are the sample info, so you should change this according to your every program ######
+
+less whole.indel.vcf  |grep -v "^##" |awk  OFS='\t'   'NR==1{print $3,$10,$11,$12,$13,$14,$15,$16}NR>1{print $1"_"$2,$10,$11,$12,$13,$14,$15,$16}' > whole.indel.brief.vcf
+
+less whole.snp.vcf  |grep -v "^##" |awk  OFS='\t'   'NR==1{print $3,$10,$11,$12,$13,$14,$15,$16}NR>1{print $1"_"$2,$10,$11,$12,$13,$14,$15,$16}' > whole.indel.brief.vcf
+
+############################ convert format   . => 0; 0/1 => 1 #####################################################
+
+perl con.pl whole.indel.brief.vcf whole.indel.brief.vcf.con
+perl con.pl  whole.snp.brief.vcf   whole.snp.brief.vcf.con
+
+##########################  srun flower script to get svg and png ###################################################
+
+/public1/Softwares/perl5/bin/perl flower.pl  whole.snp.brief.vcf.con  group2.txt /mnt/bgfs/Customers/Analysis_personal/senguo/test3
+
+/public1/Softwares/perl5/bin/perl flower.pl  whole.indel.brief.vcf.con  group2.txt /mnt/bgfs/Customers/Analysis_personal/senguo/test3
+
+
+
